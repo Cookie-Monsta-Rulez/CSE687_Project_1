@@ -1,5 +1,4 @@
-#ifndef SORTER_H_
-#define SORTER_H_
+#pragma once
 
 #include <map>
 #include <string>
@@ -35,6 +34,14 @@ class Sorter {
   static void ExportAggregated(
       const std::map<std::string, std::vector<int>>& data,
       const std::string& output_path);
-};
 
-#endif  // SORTER_H_
+  /**
+   * @brief Sorts the data and aggregates the results.
+   *
+   * @param temp_dir Directory for temporary files.
+   * @param aggregated_file Output file for aggregated results.
+   * @return True if sorting and aggregation were successful, false otherwise.
+   */
+  static bool SortAndAggregate(const std::string& temp_dir,
+                                const std::string& aggregated_file);
+};
