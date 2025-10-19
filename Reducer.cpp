@@ -1,44 +1,50 @@
-#include "reducer.h"
-
+#include "Reducer.h"
 #include <fstream>
-#include <stdexcept>
+#include <sstream>
+#include <iostream>
+#include <unordered_map>
+#include <filesystem>
 
-void Reducer::SetOutputDir(const std::string& dir) {
-  output_dir_ = dir;
-}
+namespace fs = std::filesystem;
 
-void Reducer::Reduce(const std::string& key,
-                     const std::vector<int>& values) {
-  int sum = 0;
-  for (int v : values) {
-    sum += v;
-  }
-  ExportResult(key, sum);
-}
+void Reducer::ReduceAggregatedFile(const std::string& aggregated_file, const std::vector<int>& /*dummyVec*/) {
+    std::ifstream input(aggregated_file);
+    if (!input.is_open()) {
+        std::cerr << "[Reducer] Failed to open aggregated file: " << aggregated_file << "\n";
+        return;
+    }
 
-void Reducer::ExportResult(const std::string& key, int reduced_value) {
-  buffer_[key] = reduced_value;
+    std::string output_dir = "./output";
+    if (!fs::exists(output_dir)) {
+        fs::create_directories(output_dir);
+    }
 
-  if (buffer_.size() >= kBufferLimit) {
-    Flush();
-  }
-}
+    fs::path output_file = fs::path(output_dir) / "final_results.txt";
+    std::ofstream output(output_file);
+    if (!output.is_open()) {
+        std::cerr << "[Reducer] Failed to create output file: " << output_file << "\n";
+        return;
+    }
 
-void Reducer::Flush() {
-  std::ofstream outfile(output_dir_ + "/reduced_output.txt",
-                        std::ios::app);
-  if (!outfile.is_open()) {
-    throw std::runtime_error("Could not write reduce output.");
-  }
+    std::unordered_map<std::string, int> counts;
+    std::string key;
+    int value;
 
-  for (const auto& [key, value] : buffer_) {
-    outfile << key << "," << value << "\n";
-  }
+    std::string line;
+    while (std::getline(input, line)) {
+        std::istringstream iss(line);
+        if (!(iss >> key >> value)) continue;
+        counts[key] += value;
+    }
 
-  outfile.close();
-  buffer_.clear();
+    for (const auto& [k, v] : counts) {
+        output << k << "\t" << v << "\n";
+    }
 
-  // Write a SUCCESS marker file.
-  std::ofstream success(output_dir_ + "/SUCCESS");
-  success.close();
+    // Create SUCCESS flag file
+    fs::path success_file = fs::path(output_dir) / "SUCCESS";
+    std::ofstream success(success_file);
+    success.close();
+
+    std::cout << "[Reducer] Reduced output written to: " << output_file << std::endl;
 }
