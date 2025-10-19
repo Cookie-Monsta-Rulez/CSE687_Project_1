@@ -1,3 +1,11 @@
+////////////////////////////////////
+// Sean Cooke
+// Professor Scott Roueche
+// CSE 687 - Object Oriented Design
+// Syracuse University
+// Phase 1 - MapReduce
+// October 18, 2025
+// 
 #include "Reducer.h"
 #include <fstream>
 #include <sstream>
@@ -48,3 +56,4 @@ void Reducer::ReduceAggregatedFile(const std::string& aggregated_file, const std
 
     std::cout << "[Reducer] Reduced output written to: " << output_file << std::endl;
 }
+
