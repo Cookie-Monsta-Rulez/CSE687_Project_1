@@ -1,56 +1,40 @@
-#include "sorter.h"
-
+////////////////////////////////////
+// Sean Cooke
+// Professor Scott Roueche
+// CSE 687 - Object Oriented Design
+// Syracuse University
+// Phase 1 - MapReduce
+// October 18, 2025
+// 
+#include "Sorter.h"
+#include <filesystem>
 #include <fstream>
-#include <sstream>
-#include <stdexcept>
+#include <vector>
+#include <string>
+#include <algorithm>
 
-std::map<std::string, std::vector<int>> Sorter::Aggregate(
-    const std::string& input_path) {
-  std::ifstream infile(input_path);
-  if (!infile.is_open()) {
-    throw std::runtime_error("Could not open intermediate file: " + input_path);
-  }
+bool Sorter::SortAndAggregate(const std::string& temp_dir, const std::string& aggregated_file) {
+    std::vector<std::string> lines;
 
-  std::map<std::string, std::vector<int>> grouped;
-  std::string line;
-  while (std::getline(infile, line)) {
-    std::stringstream ss(line);
-    std::string key;
-    std::string value_str;
-
-    // Expecting format: key,value
-    if (std::getline(ss, key, ',') && std::getline(ss, value_str)) {
-      try {
-        int value = std::stoi(value_str);
-        grouped[key].push_back(value);
-      } catch (...) {
-        // Skip malformed lines.
-      }
+    // Read all .txt files in temp_dir
+    for (const auto& entry : std::filesystem::directory_iterator(temp_dir)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".txt") {
+            std::ifstream in(entry.path());
+            std::string line;
+            while (std::getline(in, line)) {
+                lines.push_back(line);
+            }
+        }
     }
-  }
 
-  infile.close();
-  return grouped;
-}
+    // Sort lines
+    std::sort(lines.begin(), lines.end());
 
-void Sorter::ExportAggregated(
-    const std::map<std::string, std::vector<int>>& data,
-    const std::string& output_path) {
-  std::ofstream outfile(output_path);
-  if (!outfile.is_open()) {
-    throw std::runtime_error("Could not write to output: " + output_path);
-  }
-
-  for (const auto& [key, values] : data) {
-    outfile << key << ",";
-    for (size_t i = 0; i < values.size(); ++i) {
-      outfile << values[i];
-      if (i < values.size() - 1) {
-        outfile << " ";
-      }
+    // Write to aggregated_file
+    std::ofstream out(aggregated_file);
+    if (!out) return false;
+    for (const auto& line : lines) {
+        out << line << '\n';
     }
-    outfile << "\n";
-  }
-
-  outfile.close();
+    return true;
 }
