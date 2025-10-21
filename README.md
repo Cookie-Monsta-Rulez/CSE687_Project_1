@@ -20,6 +20,17 @@ This project implements a **single-machine, command-line MapReduce workflow** in
 
 ---
 
+## Install
+
+**Requires MinGW or similar compiler**
+
+```
+git clone https://github.com/Cookie-Monsta-Rulez/CSE687_Project_1.git
+cd CSE687_Project_1
+g++  -std=c++17 *.cpp -o MapReduce.exe
+```
+---
+
 ## Usage
 
 ### Command-line Arguments
